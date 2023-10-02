@@ -37,7 +37,7 @@ async def change_comment(data: ChangeCommentModel):
 
 # Получить все комментарии к игре
 @comment_router.get('/get-all-comments')
-async def get_comments(game_id: int):
+async def get_all_game_comments(game_id: int):
     result = get_all_game_comments_db(game_id)
 
     return {'status': 1, 'data': result}

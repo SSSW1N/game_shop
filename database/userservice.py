@@ -2,20 +2,19 @@ from datetime import datetime
 
 
 from database import get_db
-from database.models import User, UserKorzina
+from database.models import User, UserCart
 
 
 # Регистрация пользователя
-def register_user_db(name, surname, email, phone_number, password):
+def register_user_db(name, email, password):
     db = next(get_db())
 
-    cheker = db.query(User).filter_by(email=email).first()
+    checker = db.query(User).filter_by(email=email).first()
 
-    if cheker:
+    if checker:
         return False
 
-    new_user = User(name=name, surname=surname, email=email, phone_number=phone_number,
-                    password=password)
+    new_user = User(name=name, email=email, password=password, reg_date=datetime.now())
 
     db.add(new_user)
     db.commit()
@@ -23,10 +22,10 @@ def register_user_db(name, surname, email, phone_number, password):
     return 'Пользователь успешно зарегистрирован'
 
 # Проверка на наличие пользователя
-def check_user_db(phone_number: int, password: str = None):
+def check_user_db(email: str, password: str = None):
     db = next(get_db())
 
-    checker = db.query(User).filter_by(phone_number=phone_number, password=password).first()
+    checker = db.query(User).filter_by(email=email, password=password).first()
 
     if checker:
         if checker.password == password:
@@ -35,20 +34,11 @@ def check_user_db(phone_number: int, password: str = None):
             return 'Неверный пароль'
     return False
 
-
-# Корзина пользователя
-def get_all_user_games_db(user_id):
-    db = next(get_db())
-
-    user_games = db.query(UserKorzina).filter_by(user_id=user_id).all()
-
-    return user_games
-
 # Добавление в корзину
-def add_game_db(game_id, user_id):
+def add_game_in_cart_db(game_id, user_id):
     db = next(get_db())
 
-    new_game = UserKorzina(user_id=user_id, id=game_id)
+    new_game = UserCart(game_id=game_id, user_id=user_id)
 
     db.add(new_game)
     db.commit()
@@ -57,32 +47,28 @@ def add_game_db(game_id, user_id):
 
 
 # Удаление из корзины
-def delete_game_db(game_id):
+def delete_game_db(game_id, user_id):
     db = next(get_db())
 
-    exact_game = db.query(UserKorzina).filter_by(id=game_id).first()
+    exact_game = db.query(UserCart).filter_by(user_id=user_id, game_id=game_id).first()
 
-
-    db.delete(exact_game)
-    db.commit()
-
-    return 'Успешно удалено'
-
-
-# Пополнить баланс
-def replenishment_balance_db(user_id, balance):
-    db = next(get_db())
-
-    # тут должно быть апи банка
-
-    cheker = db.query(User).filter_by(id=user_id).first()
-
-    if cheker:
-        rep_balance = User(balance=balance, id=user_id)
-
-        db.add(rep_balance)
-
+    if exact_game:
+        db.delete(exact_game)
         db.commit()
+
+        return 'Успешно удалено'
+
+    return False
+
+# Корзина пользователя
+def get_all_user_games_db(user_id):
+    db = next(get_db())
+
+    user_games_cart = db.query(UserCart).filter_by(user_id=user_id).all()
+    if user_games_cart:
+        return user_games_cart
+    return False
+
 
 
 
